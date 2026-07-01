@@ -1,43 +1,46 @@
-# Astro Starter Kit: Minimal
+# codeandrun_astro
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Sito Astro di [codeandrun.it](https://www.codeandrun.it) — blog italiano che unisce sviluppo software e running, migrato da WordPress/Eleventy.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+## Struttura del progetto
 
 ```text
 /
-├── public/
+├── public/                  # asset statici (favicon, css/js legacy dai post migrati)
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── components/
+│   │   ├── layout/          # Header, Footer, BaseHead, Pagination
+│   │   ├── post/            # PostCard, CategoryBadge, TrainingLog
+│   │   └── shortcodes/      # Gallery, RunningBadge, StravaAccordion, Vimeo, YouTube
+│   ├── content/
+│   │   └── posts/           # articoli in MDX (frontmatter: title, date, categories, tags, featuredImage, ...)
+│   ├── content.config.ts    # schema della collection "posts"
+│   ├── layouts/
+│   ├── pages/                # routing (index, [slug], running, about, uses, feed RSS, sitemap)
+│   └── styles/
+├── astro.config.mjs
+├── Dockerfile / docker-compose*.yml / nginx.conf   # build e serve statico via nginx
+└── wxr-to-mdx.cjs            # script di migrazione dall'export WXR di WordPress a MDX
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Le immagini dei post sono servite da S3/CDN (`cdn.codeandrun.it`), referenziate come `/uploads/...` nel frontmatter e nel corpo dei post.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Comandi
 
-Any static assets, like images, can be placed in the `public/` directory.
+Tutti i comandi vanno eseguiti dalla root del progetto:
 
-## 🧞 Commands
+| Comando           | Azione                                            |
+| :----------------- | :------------------------------------------------ |
+| `npm install`       | Installa le dipendenze                            |
+| `npm run dev`       | Avvia il dev server su `localhost:4321`           |
+| `npm run build`     | Builda il sito statico in `./dist/`               |
+| `npm run preview`   | Preview della build in locale                     |
+| `npm run astro ...` | Comandi CLI Astro (es. `astro check`)             |
 
-All commands are run from the root of the project, from a terminal:
+## Deploy
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Il sito viene buildato in un'immagine Docker (nginx serve `./dist/`) e distribuito su `www.codeandrun.it` dietro Traefik. Vedi `Dockerfile`, `docker-compose.yml` e `docker-compose.server.yml`.
 
-## 👀 Want to learn more?
+## Migrazione contenuti
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+`wxr-to-mdx.cjs` converte l'export WXR di WordPress in file MDX dentro `src/content/posts/`, riscrivendo gli URL `wp-content/uploads` in `/uploads`.

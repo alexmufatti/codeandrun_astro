@@ -1,0 +1,54 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/post/PostCard.astro';
+import Pagination from '../../components/layout/Pagination.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const PER_PAGE = 12;
+  const allPosts = (await getCollection('posts'))
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+  const totalPages = Math.ceil(allPosts.length / PER_PAGE);
+
+  // page 1 is handled by index.astro — start from 2
+  return Array.from({ length: totalPages - 1 }, (_, i) => {
+    const pageNum = i + 2;
+    const start = (pageNum - 1) * PER_PAGE;
+    return {
+      params: { page: String(pageNum) },
+      props: {
+        posts: allPosts.slice(start, start + PER_PAGE),
+        currentPage: pageNum,
+        totalPages,
+      },
+    };
+  });
+}
+
+const { posts, currentPage, totalPages } = Astro.props;
+---
+<Base
+  title={`Articoli – Pagina ${currentPage} · Code and Run`}
+  description="Blog of a running developer"
+  prevPage={currentPage === 2 ? '/' : `/page/${currentPage - 1}/`}
+  nextPage={currentPage < totalPages ? `/page/${currentPage + 1}/` : undefined}
+>
+  <main class="car-main" id="main">
+    <div class="car-container">
+
+      <div class="car-section-label">
+        Articoli — Pagina {currentPage} di {totalPages}
+      </div>
+
+      <div class="car-grid">
+        {posts.map(post => (
+          <PostCard slug={post.id} {...post.data} />
+        ))}
+      </div>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} />
+
+    </div>
+  </main>
+</Base>

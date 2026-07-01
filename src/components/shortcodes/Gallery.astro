@@ -1,0 +1,22 @@
+---
+interface Props {
+  images: { src: string; alt?: string }[];
+  columns?: number;
+}
+const { images, columns = 3 } = Astro.props;
+---
+<div class="wp-block-gallery" style={`--gallery-columns: ${columns}`}>
+  {images.map(({ src, alt }) => (
+    <figure class="wp-block-image">
+      <img src={src} alt={alt ?? ''} loading="lazy" />
+    </figure>
+  ))}
+</div>
+
+<style>
+.wp-block-gallery {
+  display: grid;
+  grid-template-columns: repeat(var(--gallery-columns, 3), 1fr);
+  gap: 0.5rem;
+}
+</style>

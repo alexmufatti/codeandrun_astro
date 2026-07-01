@@ -1,0 +1,53 @@
+---
+interface Props {
+  currentPage: number;
+  totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+
+function pageHref(n: number) {
+  return n === 1 ? '/' : `/page/${n}/`;
+}
+
+function getPages(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const set = new Set<number>();
+  set.add(1);
+  set.add(total);
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) set.add(i);
+
+  const sorted = [...set].sort((a, b) => a - b);
+  const result: (number | '...')[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i] - sorted[i - 1] > 1) result.push('...');
+    result.push(sorted[i]);
+  }
+  return result;
+}
+
+const pages = getPages(currentPage, totalPages);
+const prevHref = currentPage > 1 ? pageHref(currentPage - 1) : null;
+const nextHref = currentPage < totalPages ? pageHref(currentPage + 1) : null;
+---
+
+<nav class="car-pagination" aria-label="Paginazione">
+  {prevHref
+    ? <a href={prevHref} class="car-pagination__arrow" aria-label="Pagina precedente">← Precedenti</a>
+    : <span class="car-pagination__arrow car-pagination__arrow--disabled">← Precedenti</span>
+  }
+
+  {pages.map(p =>
+    p === '...'
+      ? <span class="car-pagination__dots">…</span>
+      : p === currentPage
+        ? <span class="car-pagination__current" aria-current="page">{p}</span>
+        : <a href={pageHref(p)} class="car-pagination__page">{p}</a>
+  )}
+
+  {nextHref
+    ? <a href={nextHref} class="car-pagination__arrow" aria-label="Pagina successiva">Successivi →</a>
+    : <span class="car-pagination__arrow car-pagination__arrow--disabled">Successivi →</span>
+  }
+</nav>

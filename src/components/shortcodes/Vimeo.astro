@@ -1,0 +1,14 @@
+---
+interface Props { id: string }
+const { id } = Astro.props;
+---
+<div class="youtube-embed wp-embed-aspect-16-9 wp-has-aspect-ratio">
+  <iframe
+    src={`https://player.vimeo.com/video/${id}`}
+    title="Vimeo video"
+    frameborder="0"
+    allow="autoplay; fullscreen; picture-in-picture"
+    allowfullscreen
+    loading="lazy"
+  />
+</div>

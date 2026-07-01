@@ -1,0 +1,18 @@
+---
+title: "VMware and NTFS storage for vmdk"
+date: 2012-05-02
+excerpt: "I face the problem of having vmware disks files (vmdk) on ntfs partition (for sharing them between windows and linux installations). When I run vmware with this configuration in linux I get an hight C..."
+categories: ["Blog"]
+tags: ["Computers"]
+wpId: 23
+---
+
+<p>I face the problem of having vmware disks files (vmdk) on ntfs partition (for sharing them between windows and linux installations).</p>
+
+<p>When I run vmware with this configuration in linux I get an hight CPU usage by <em>ntfs.mount</em> process. Many blogs says that adding <em>mainMem.useNamedFile=FALSE</em> to virtual machine configuration file will fix this issue.</p>
+
+<p>This probably worked only with older vmware versions.</p>
+
+<p>Then I found <a href="http://www.ajopaul.com/2011/07/22/ubuntu-vmware-and-mount-ntfs-high-cpu-usage-fix/">this</a>.</p>
+
+<p>It says to change the location for snapshot and suspend files to a non ntfs partition. This just works!!</p>

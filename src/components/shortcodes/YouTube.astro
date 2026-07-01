@@ -1,0 +1,22 @@
+---
+interface Props {
+  id: string;
+  shorts?: boolean;
+}
+const { id, shorts = false } = Astro.props;
+
+const isShorts = shorts || id.includes('shorts/');
+const videoId = isShorts ? id.replace('shorts/', '') : id;
+const src = `https://www.youtube.com/embed/${videoId}`;
+const aspectClass = isShorts ? 'wp-embed-aspect-9-16' : 'wp-embed-aspect-16-9';
+---
+<div class={`youtube-embed ${aspectClass} wp-has-aspect-ratio`}>
+  <iframe
+    src={src}
+    title="YouTube video"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen
+    loading="lazy"
+  />
+</div>

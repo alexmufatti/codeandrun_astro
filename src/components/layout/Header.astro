@@ -1,0 +1,47 @@
+---
+const nav = [
+  { label: 'Home', href: '/' },
+  { label: 'Running', href: '/running/' },
+  { label: 'Uses', href: '/uses/' },
+  { label: 'About', href: '/about/' },
+];
+const currentPath = Astro.url.pathname;
+---
+<header class="car-header" id="car-header">
+  <div class="car-header__inner">
+
+    <a href="/" class="car-logo">
+      <span class="car-logo__accent">C</span>ode and <span class="car-logo__accent">R</span>un
+    </a>
+
+    <nav class="car-nav" aria-label="Menu principale">
+      <ul class="car-nav__list">
+        {nav.map(({ label, href }) => (
+          <li>
+            <a href={href} class={currentPath === href ? 'current-menu-item' : ''}>
+              {label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="car-header__actions">
+      <button class="car-dark-toggle js-dark-toggle" aria-label="Cambia tema" title="Dark/Light mode">
+        <span class="car-dark-toggle__icon">🌙</span>
+      </button>
+      <button class="car-hamburger js-hamburger" aria-label="Apri menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="car-drawer js-drawer" hidden>
+    <ul class="car-drawer__list">
+      {nav.map(({ label, href }) => (
+        <li><a href={href}>{label}</a></li>
+      ))}
+    </ul>
+  </div>
+</header>

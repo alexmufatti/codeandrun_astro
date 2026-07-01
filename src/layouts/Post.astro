@@ -1,0 +1,102 @@
+---
+import Base from './Base.astro';
+import CategoryBadge from '../components/post/CategoryBadge.astro';
+import TrainingLog from '../components/post/TrainingLog.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'posts'>;
+  prev?: CollectionEntry<'posts'>;
+  next?: CollectionEntry<'posts'>;
+}
+
+const { post, prev, next } = Astro.props;
+const { title, date, excerpt, seoDescription, featuredImage, featuredImageAlt, categories,
+        car_week, car_km, car_race, training_types, training_feelings } = post.data;
+const metaDescription = seoDescription || excerpt;
+const wordCount = post.body ? post.body.split(/\s+/).filter(Boolean).length : undefined;
+
+const dateStr = date.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<Base
+  title={title}
+  description={metaDescription}
+  image={featuredImage}
+  type="article"
+  publishedTime={date}
+  categories={categories}
+  wordCount={wordCount}
+>
+  <main class="car-main car-main--single" id="main">
+    <article class="car-single">
+
+      <div class="car-single__header car-container">
+        <CategoryBadge categories={categories} car_race={car_race} />
+
+        {car_week && (
+          <div class="car-single__meta">
+            <span class="car-post__week">{car_week}</span>
+            <span class="car-post__date">{dateStr}</span>
+          </div>
+        )}
+
+        <h1 class="car-single__title">{title}</h1>
+
+        {(car_km || car_week) && (
+          <div class="car-single__stats">
+            {car_km && (
+              <div class="car-stat">
+                <div class="car-stat__label">DISTANZA</div>
+                <div class="car-stat__value">{car_km} km</div>
+              </div>
+            )}
+            {car_week && (
+              <div class="car-stat">
+                <div class="car-stat__label">SETTIMANA</div>
+                <div class="car-stat__value">{car_week}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {featuredImage && (
+        <div class="car-single__featured-wrap car-container">
+          <img
+            src={featuredImage}
+            alt={featuredImageAlt ?? title}
+            class="car-single__featured"
+            loading="eager"
+            width="900"
+            height="500"
+          />
+        </div>
+      )}
+
+      <div class="car-single__content car-container">
+        {excerpt && <p class="car-post__intro">{excerpt}</p>}
+        <slot />
+      </div>
+
+      <footer class="car-single__footer car-container">
+        <TrainingLog training_types={training_types} training_feelings={training_feelings} />
+
+        <nav class="car-single__nav">
+          {prev && (
+            <a href={`/${prev.id}/`} class="car-single__nav-link car-single__nav-link--prev">
+              <span class="car-single__nav-dir">← Precedente</span>
+              <span class="car-single__nav-title">{prev.data.title}</span>
+            </a>
+          )}
+          {next && (
+            <a href={`/${next.id}/`} class="car-single__nav-link car-single__nav-link--next">
+              <span class="car-single__nav-dir">Successivo →</span>
+              <span class="car-single__nav-title">{next.data.title}</span>
+            </a>
+          )}
+        </nav>
+      </footer>
+
+    </article>
+  </main>
+</Base>

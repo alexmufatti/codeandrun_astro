@@ -1,0 +1,20 @@
+---
+title: "Trovare ed eliminare record (semi-)duplicati in SQL"
+date: 2009-09-22
+excerpt: "Lo ammetto: non é certo la cosa più complicata del mondo eliminare le righe duplicate in un database; quando serve però non viene mai in mente un modo per farlo. Questo post lo categorizzo quindi come..."
+categories: ["Blog"]
+tags: ["Programming"]
+wpId: 58
+---
+
+<p>Lo ammetto: non é certo la cosa più complicata del mondo eliminare le righe duplicate in un database; quando serve però non viene mai in mente un modo per farlo. Questo post lo categorizzo quindi come mio <em>promemoria</em>!</p>
+
+<p>Perché (semi-)duplicati? Parto dall’esempio pratico: aggiungere una chiave ad una tabella già piena di dati. Ovviamente, per la <a href="http://it.wikipedia.org/wiki/Legge_di_Murphy">legge di Murphy</a>, i valori dei campi che dovrebbero diventare chiave non saranno mai tutti diversi. Voglio quindi eliminare dalla tabella i record con chiavi uguali, preservandone solo una copia per ognuno.</p>
+
+<p>Poniamo che la nostra tabella di chiami table1 con campi field1,field2,field3 (la fantasia nel dare i nomi é il mio forte). Vogliamo far diventare field1 e field2 chiave primaria. Per eliminare i duplicati eseguiamo:</p>
+
+<p><code>SELECT * FROM db.table1 as t2 WHERE (t2.field1,t2.field2,t2.field3) not in ( SELECT t1.field1,t1.field2, min(t1.field3) FROM db.table1 as t1 group by t1.field1,t1.field2)</code></p>
+
+<p>Fatto! Come preannunciato niente di emozionante… ;-)</p>
+
+<p>Ovviamente la regola <code>min(t1.field3)</code> puo&#39; essere cambiata a piacimento per conservare il record piu&#39; conveniente ai fini dell’applicazione.</p>

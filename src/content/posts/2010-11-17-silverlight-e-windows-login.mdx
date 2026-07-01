@@ -1,0 +1,65 @@
+---
+title: "Silverlight e Windows Login"
+date: 2010-11-17
+excerpt: "In Sirverlight non esiste nativamente il modo per ottenere le informazioni sull’utente connesso a Windows. Quello che si può fare é utilizzare del codice ASP lato server e poi recuperare le informazio..."
+categories: ["Blog"]
+tags: ["Programming"]
+wpId: 51
+---
+
+<p>In Sirverlight non esiste nativamente il modo per ottenere le informazioni sull’utente connesso a Windows. Quello che si può fare é utilizzare del codice ASP lato server e poi recuperare le informazioni da Silverlight.</p>
+
+<p>Nel nostro container ASP che host il controllo Silverlight aggiungiamo qualcosa del tipo:</p>
+
+```
+....
+
+    void Page_Load()
+    {
+      this.UsernameField.Value = User.Identity.Name;
+    }
+
+  ...
+```
+
+```
+....
+
+    void Page_Load()
+    {
+      this.UsernameField.Value = User.Identity.Name;
+    }
+
+  ...
+```
+<p>Nel body invece mettiamo un controllo nascosto per contenere i nostri dati:</p>
+
+```
+...
+
+  ...
+```
+
+```
+...
+
+  ...
+```
+<p>Lato Silverlight leggiamo, quando ci occorre, il volore del tag <em>input</em>:</p>
+
+```
+public string GetUser()
+{
+  HtmlDocument doc = HtmlPage.Document;
+  if (doc == null)
+  {
+    return string.Empty;
+  }
+  HtmlElement elm = doc.GetElementById("UserField");
+  if (elm == null)
+  {
+    return string.Empty;
+  }
+  return elm.GetAttribute("value");
+}
+```

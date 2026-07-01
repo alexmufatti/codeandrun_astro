@@ -1,0 +1,16 @@
+services:
+  codeandrun:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "4000:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.codeandrun.rule=Host(`www.codeandrun.it`) || Host(`codeandrun.it`)"
+      - "traefik.http.routers.codeandrun.entrypoints=websecure"
+      - "traefik.http.routers.codeandrun.tls.certresolver=letsencrypt"
+      # Redirect codeandrun.it → www
+      - "traefik.http.middlewares.codeandrun-www.redirectregex.regex=^https://codeandrun\\.it/(.*)"
+      - "traefik.http.middlewares.codeandrun-www.redirectregex.replacement=https://www.codeandrun.it/$${1}"
+      - "traefik.http.middlewares.codeandrun-www.redirectregex.permanent=true"
+      - "traefik.http.routers.codeandrun.middlewares=codeandrun-www"

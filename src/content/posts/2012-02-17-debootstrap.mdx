@@ -1,0 +1,74 @@
+---
+title: "Debootstrap"
+date: 2012-02-16
+excerpt: "Questo post é un piccolo howto su come installare Debian (o distro derivate come ubuntu) con debootstrap. Nota importante Lo scopo principale di questo post é spiegare il funzionamento di debootstrap..."
+categories: ["Blog"]
+tags: ["Computers"]
+wpId: 48
+---
+
+<p>Questo post é un piccolo howto su come installare Debian (o distro derivate come ubuntu) con debootstrap.</p>
+
+<h3>Nota importante</h3>
+
+<p>Lo scopo principale di questo post é spiegare il funzionamento di debootstrap e tenere degli appunti sulle fasi principali per l’installazione, non quello di fare un cut&amp;paste diretto dei comandi.</p>
+
+<h3>Assunzioni</h3>
+
+<p>In questo post si assume che:</p>
+
+<ul>
+<li>il disco sia già stato partizionato nella maniera corretta;</li>
+<li>si stia installando debian sid;</li>
+<li>la partizione di root é <code>/dev/sda1</code>;</li>
+<li>la partizione /home <code>/dev/sda5</code>;</li>
+<li>la partizione di swap é <code>/dev/sda2</code>.</li>
+</ul>
+
+<h3>Preparare il sistema live</h3>
+
+<p>Per prima cosa occorre avere un media boot-abile di una distribuzione debian-based (ubuntu, mint, debian…etc). Facciamo il boot con il sistema live e accediamo alla console o, se si preferisce l’interfaccia grafica, ad un emulatore di terminale.</p>
+
+<p>Probabilmente l’installazione live non contiene debootstrap. Lo si può installare con: <code>sudo apt-get install debootstrap</code>.</p>
+
+<h3>Preparare le partizioni</h3>
+
+<p>Se il disco non é partizionato o si vuole cambiarne la suddivisione si può usare fdisk. Il mio disco solitamente é già partizionato e, soprattutto, nella partizione /home ci sono tutti i miei dati. Se questa é anche la vostra condizione occorre stare <em>molto</em> attenti a formattare unicamente la partizione root e non quella home. Il comando da eseguire é: <code>sudo mkfs.ext3 /dev/sda1</code>.</p>
+
+<p>Ora creiamo una directory sotto /mnt che sarà la base dell’installazione: <code>sudo mkdir /mnt/new_install</code> Successivamente montiamo lì i nostri filesystem: <code>sudo mount /dev/sda1 /mnt/new_install</code>. (si potrebbe montare già da ora anche la directory /home ma per evitare cancellazioni accidentali meglio farlo dopo)</p>
+
+<h3>Eseguire debootstrap</h3>
+
+<p>Ok, si é pronti finalmente a lanciare debootsrap: <code>sudo debootstrap --verbose --arch=amd64 sid /mnt/new_install</code>. Per fare questo dovrete essere connessi ad internet. Una volta eseguito il comando si dovrà aspettare lo scaricamento e l’installazione del sistema base.</p>
+
+<p>Ora, se tutto é andato per il verso giusto, dovremmo avere in /mnt/new_install la struttura base del fileystem e possiamo dunque procedere con il mount dei filesystem di sistema:</p>
+
+<ul>
+<li>proc: <code>sudo mount -t proc /proc /mnt/new_install/proc</code></li>
+<li>sysfs: <code>sudo mount -t sysfs /sys /mnt/new_install/sysfs</code></li>
+<li>dev: <code>sudo mount --bind /dev /mnt/new_install/dev</code> Inoltre creiamo un file che servità durante l’installazione del bootloader: <code>touch /mnt/new_install/etc/mtab</code></li>
+</ul>
+
+<p>Infine copiamo il file con i dns di sistema nella nuova installazione: <code>sudo cp -a /etc/resolv.conf /mnt/new_install/etc/resolv.conf</code></p>
+
+<h3>Chrooting</h3>
+
+<p>Possiamo ora fare chroot nella nuova installazione: <code>sudo chroot /mnt/new_install /bin/bash</code></p>
+
+<p>Da questo momento in poi saremo all’interno della nuova installazione. Per prima cosa, prima che ci si dimentichi e si debba rifare tutto da capo, impostiamo la password di root del sistema: <code>passwd</code></p>
+
+<p>Dopodiché installiamo qualche pacchetto fondamentale con apt-get o aptitude:</p>
+
+<ul>
+<li>linux-image</li>
+<li>grub</li>
+<li>vim :-) Nel mio caso ora é il momento di montare il filesystem /home con: <code>sudo mount /dev/sda5 /mnt/new_install/home</code> e, se si vuole partire da un configurazione pulita per il proprio utente, spostare la vecchia home_dir: <code>sudo mv /mnt/new_install/home/user /mnt/new_install/home/user_old</code></li>
+</ul>
+
+<p>Ultimo passo da non dimenticare, pena un kernel panic al primo avvio, creare il file /etc/ contenente:</p>
+
+<p><code>proc /proc proc nodev,noexec,nosuid 0 0 /dev/sda1 / ext3 errors=remount-ro 0 1 /dev/sda5 /home ext3 defaults,user_xattr 0 2 /dev/sda2 none swap sw 0 0</code></p>
+
+<p>Ora é possibile uscire dal chroot e fare il reboot del sistema. Una volta fatto il boot nel sistema base si può partire con l’installazione di tutti i pacchetti (xorg, etc) e con la creazione degli utenti.</p>
+
+<p>Finito, la nostra disto é installata!</p>

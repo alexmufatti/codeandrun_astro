@@ -1,0 +1,65 @@
+---
+import CategoryBadge from './CategoryBadge.astro';
+import TrainingLog from './TrainingLog.astro';
+
+interface Props {
+  slug: string;
+  title: string;
+  excerpt?: string;
+  date: Date;
+  featuredImage?: string;
+  featuredImageAlt?: string;
+  categories: string[];
+  tags: string[];
+  car_week?: string;
+  car_km?: string;
+  car_race?: boolean;
+  training_types?: string;
+  training_feelings?: string;
+  featured?: boolean;
+}
+
+const {
+  slug, title, excerpt, date, featuredImage, featuredImageAlt,
+  categories, car_week, car_km, car_race, training_types, training_feelings,
+  featured = false,
+} = Astro.props;
+
+const href = `/${slug}/`;
+const dateStr = date.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+const imgSize = featured ? 'car-card-wide' : 'car-card';
+---
+<article class={`car-post ${featured ? 'car-post--featured' : 'car-post--card'}`}>
+  {featuredImage && (
+    <a href={href} class="car-post__thumb-wrap" tabindex="-1">
+      <img
+        src={featuredImage}
+        alt={featuredImageAlt ?? title}
+        class="car-post__thumb"
+        loading={featured ? 'eager' : 'lazy'}
+        fetchpriority={featured ? 'high' : undefined}
+        width={featured ? 1100 : 600}
+        height={featured ? 550 : 400}
+      />
+      {car_km && <div class="car-post__km">{car_km}<span>km</span></div>}
+      <div class="car-post__badge-wrap">
+        <CategoryBadge categories={categories} car_race={car_race} isListing />
+      </div>
+    </a>
+  )}
+  <div class="car-post__body">
+    {car_week && (
+      <div class="car-post__meta">
+        <span class="car-post__week">{car_week}</span>
+        <span class="car-post__date">{dateStr}</span>
+      </div>
+    )}
+    {featured
+      ? <h2 class="car-post__title"><a href={href}>{title}</a></h2>
+      : <h3 class="car-post__title"><a href={href}>{title}</a></h3>
+    }
+    {excerpt && <div class="car-post__excerpt">{excerpt}</div>}
+    <TrainingLog training_types={training_types} training_feelings={training_feelings} />
+    {featured && <a href={href} class="car-post__read-more">Leggi →</a>}
+  </div>
+</article>

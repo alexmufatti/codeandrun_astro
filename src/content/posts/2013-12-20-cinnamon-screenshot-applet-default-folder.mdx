@@ -1,0 +1,24 @@
+---
+title: "Cinnamon screenshot applet default folder"
+date: 2013-12-20
+excerpt: "I’ve switched some weeks ago to Linux Mint and Cinnamon from Xfce and in these days I’m a kind of exploring the new desktop. I’m used to take screenshot for work, totake some notes and so I installed..."
+categories: ["Blog"]
+tags: ["Linux"]
+wpId: 2
+---
+
+<p>I’ve switched some weeks ago to Linux Mint and Cinnamon from Xfce and in these days I’m a kind of exploring the new desktop.</p>
+
+<p>I’m used to take screenshot for work, totake some notes and so I installed the <a href="http://cinnamon-spices.linuxmint.com/applets/view/35" title="screenshot applet">Cinnamon screenshot applet</a>.</p>
+
+<p><img src="/images/2021/08/screenshot-from-2013-12-20-195253.png" alt="image" /></p>
+
+<p>After some day using it I was a bit bored by the screenshots saved in Pictures folder by default so I traied to change this behaviur.</p>
+
+<p>Looking into the applet js file i discover that the applet is based on gnome-screenshot and so I find an easy solution to my problem.</p>
+
+<p>You can edit the with dconf-editor the configuration string</p>
+
+<p><code>org.gnome.screenshot.auto-save-directory</code></p>
+
+<p>ad set you favorite screenshot folder!</p>

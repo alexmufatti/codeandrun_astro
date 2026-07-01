@@ -1,0 +1,40 @@
+---
+interface Props {
+  id: string;
+  embedId?: string;
+  imageUrl?: string;
+}
+const { id, embedId, imageUrl } = Astro.props;
+const activityUrl = `https://www.strava.com/activities/${id}`;
+---
+<div class="strava-accordion" data-activity-id={id}>
+  <div class="strava-accordion-header">
+    <a href={activityUrl} target="_blank" rel="noopener" class="strava-activity-link">
+      <svg class="strava-icon" viewBox="0 0 24 24" width="18" height="18">
+        <path fill="#FC4C02" d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.172"/>
+      </svg>
+      Visualizza attività su Strava
+    </a>
+    <button class="strava-accordion-toggle" type="button" aria-expanded="false">
+      <span class="strava-toggle-text">Mostra dettagli</span>
+      <svg class="strava-toggle-icon" viewBox="0 0 24 24" width="16" height="16">
+        <path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="strava-accordion-content" style="display: none;">
+    {imageUrl ? (
+      <figure class="strava-map-image">
+        <img src={imageUrl} alt="Mappa attività" loading="lazy" />
+      </figure>
+    ) : (
+      <div
+        class="strava-embed-placeholder"
+        data-embed-type="activity"
+        data-embed-id={id}
+        data-style="standard"
+      />
+    )}
+  </div>
+</div>
+

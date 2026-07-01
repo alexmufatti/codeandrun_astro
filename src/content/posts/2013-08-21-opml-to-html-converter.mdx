@@ -1,0 +1,53 @@
+---
+title: "Opml to Html converter"
+date: 2013-08-21
+excerpt: "Yesterday I discovered that wordpress does not have a blogroll feature any more so I looked around to find a way to show my feedly subscription list in my blog. I didn’t find anything interesting so d..."
+categories: ["Blog"]
+tags: ["Programming"]
+wpId: 6
+---
+
+<p>Yesterday I discovered that wordpress does not have a blogroll feature any more so I looked around to find a way to show my feedly subscription list in my blog.</p>
+
+<p>I didn’t find anything interesting so decided to implement a simple javascipt class to convert the <em>opml</em> file exported from feedly to an <em>html</em> page so that I could easily create a wordpress page or widget.</p>
+
+<p>The script is really very simple, it takes the ompl, deserialize it and create a corresponding HTML string using from a basic template defined in the JS itself. It can be certainly improved (for example adding some css class to the template for graphical customization) but, for now, it just work for my needs.</p>
+
+<p>In this version you can customize the export style editing the first lines of the JS:</p>
+
+```
+this.export_template = &#39;&lt;html&gt;&lt;title&gt;Opml export&lt;/title&gt;&lt;body&gt;{INNERHTML}&lt;/body&gt;&lt;/html&gt;&#39;;
+
+this.html_template = &#39;&lt;h1&gt;{OPMLTITLE}&lt;/h1&gt;n&lt;ul&gt;{ITEMS}&lt;/ul&gt;&#39;;
+
+this.rss_template = &#39;&lt;li&gt;[&lt;a href="{XMLURL}"&gt;RSS&lt;/a&gt;] &lt;a href="{HTMLURL}"&gt;{TITLE}&lt;/a&gt;&lt;/li&gt;n&#39;;
+
+this.folder_template_start = &#39;&lt;li&gt;{TITLE}n&lt;ul&gt;n&#39;;
+
+this.folder_template_end = &#39;&lt;/ul&gt;&lt;/li&gt;n&#39;;
+```
+
+```
+this.export_template = &#39;&lt;html&gt;&lt;title&gt;Opml export&lt;/title&gt;&lt;body&gt;{INNERHTML}&lt;/body&gt;&lt;/html&gt;&#39;;
+
+this.html_template = &#39;&lt;h1&gt;{OPMLTITLE}&lt;/h1&gt;n&lt;ul&gt;{ITEMS}&lt;/ul&gt;&#39;;
+
+this.rss_template = &#39;&lt;li&gt;[&lt;a href="{XMLURL}"&gt;RSS&lt;/a&gt;] &lt;a href="{HTMLURL}"&gt;{TITLE}&lt;/a&gt;&lt;/li&gt;n&#39;;
+
+this.folder_template_start = &#39;&lt;li&gt;{TITLE}n&lt;ul&gt;n&#39;;
+
+this.folder_template_end = &#39;&lt;/ul&gt;&lt;/li&gt;n&#39;;
+```
+<p>These variables describe the export format:</p>
+
+<ul>
+<li><strong>export_template</strong> is the template for the export html page;</li>
+<li><strong>html_template</strong> is the template for the page content;</li>
+<li><strong>rss_template</strong> is the template for each RSS line;</li>
+<li><strong>folder_template_start</strong> is the template for the opening tag of RSS folder line;</li>
+<li><strong>folder_template_end</strong> is the template for the closing tag of RSS folder line.</li>
+</ul>
+
+<p>You can find it on ghitub, under my script repository: <a href="https://github.com/alexmufatti/Scripts/blob/master/scripts/opml.js" title="opml.js">opml.js</a> and <a href="https://github.com/alexmufatti/Scripts/blob/master/scripts/opml.html" title="opml.html">opml.html</a>.</p>
+
+<p>I hope it can be useful.</p>

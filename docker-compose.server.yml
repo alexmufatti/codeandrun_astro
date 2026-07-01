@@ -1,0 +1,6 @@
+services:
+  codeandrun:
+    image: codeandrun-astro:latest
+    restart: unless-stopped
+    ports:
+      - "4002:80"

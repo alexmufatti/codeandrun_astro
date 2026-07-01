@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import PostCard from '../components/post/PostCard.astro';
+import Pagination from '../components/layout/Pagination.astro';
+import { getCollection } from 'astro:content';
+
+const PER_PAGE = 12;
+
+const allPosts = (await getCollection('posts'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const pagePosts = allPosts.slice(0, PER_PAGE);
+const totalPages = Math.ceil(allPosts.length / PER_PAGE);
+const [featured, ...rest] = pagePosts;
+---
+<Base title="Code and Run" description="Blog of a running developer" nextPage={totalPages > 1 ? '/page/2/' : undefined}>
+
+  <div class="car-hero">
+    <div class="car-hero__inner">
+      <div class="car-hero__eyebrow">Blog of a running developer</div>
+      <h1 class="car-hero__title">Code and Run</h1>
+      <p class="car-hero__description">Blog of a running developer</p>
+    </div>
+  </div>
+
+  <main class="car-main" id="main">
+    <div class="car-container">
+
+      {featured && (
+        <>
+          <div class="car-section-label">Ultimi articoli</div>
+          <PostCard featured slug={featured.id} {...featured.data} />
+        </>
+      )}
+
+      {rest.length > 0 && (
+        <div class="car-grid">
+          {rest.map(post => (
+            <PostCard slug={post.id} {...post.data} />
+          ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination currentPage={1} totalPages={totalPages} />
+      )}
+
+    </div>
+  </main>
+</Base>

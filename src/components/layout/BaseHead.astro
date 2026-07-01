@@ -1,0 +1,259 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  categories?: string[];
+  nextPage?: string;
+  prevPage?: string;
+  wordCount?: number;
+}
+const {
+  title,
+  description = 'Blog of a running developer',
+  image,
+  type = 'website',
+  publishedTime,
+  modifiedTime,
+  categories = [],
+  nextPage,
+  prevPage,
+  wordCount,
+} = Astro.props;
+
+const SITE = 'https://www.codeandrun.it';
+const AUTHOR_ID = `${SITE}/#author`;
+const WEBSITE_ID = `${SITE}/#website`;
+const AVATAR_URL = `${SITE}/wp-content/uploads/2025/10/avatar4-2.png`;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const CDN = 'https://cdn.codeandrun.it';
+const ogImage = image
+  ? (image.startsWith('/uploads/') ? `${CDN}${image}` : new URL(image, Astro.site).toString())
+  : `${SITE}/favicon.png`;
+
+const readingMinutes = wordCount ? Math.max(1, Math.round(wordCount / 200)) : null;
+
+// ── JSON-LD ──────────────────────────────────────────────────────────────────
+const authorNode = {
+  '@type': ['Person', 'Organization'],
+  '@id': AUTHOR_ID,
+  name: 'Alex Mufatti',
+  url: SITE,
+  image: {
+    '@type': 'ImageObject',
+    '@id': AVATAR_URL,
+    url: AVATAR_URL,
+    contentUrl: AVATAR_URL,
+    width: 850,
+    height: 850,
+  },
+  description: 'Marathoner | CTO @intre_scrumteam | tech addicted',
+  sameAs: [
+    SITE,
+    'https://www.instagram.com/_codeandrun_',
+    'https://www.linkedin.com/in/amufatti/',
+    'https://x.com/alexmufatti',
+    'https://www.youtube.com/@AlexMufatti',
+    'https://mastodon.uno/@alexmufatti',
+  ],
+};
+
+const websiteNode = {
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+  url: SITE,
+  name: 'Code And Run',
+  description: 'Blog of a running developer',
+  publisher: { '@id': AUTHOR_ID },
+  inLanguage: 'it-IT',
+};
+
+const pageUrl = canonicalURL.toString();
+let graph: object[];
+
+if (type === 'article') {
+  const pageId   = `${pageUrl}#webpage`;
+  const articleId = `${pageUrl}#article`;
+  const imgId    = image ? `${pageUrl}#primaryimage` : undefined;
+  const published = publishedTime?.toISOString();
+  const modified  = (modifiedTime ?? publishedTime)?.toISOString();
+  const absImage  = image ? new URL(image, Astro.site).toString() : undefined;
+
+  const imageNode = absImage && imgId ? {
+    '@type': 'ImageObject',
+    '@id': imgId,
+    url: absImage,
+    contentUrl: absImage,
+    inLanguage: 'it-IT',
+  } : null;
+
+  const webpageNode = {
+    '@type': 'WebPage',
+    '@id': pageId,
+    url: pageUrl,
+    name: title,
+    isPartOf: { '@id': WEBSITE_ID },
+    datePublished: published,
+    dateModified: modified,
+    description,
+    breadcrumb: { '@id': `${pageUrl}#breadcrumb` },
+    inLanguage: 'it-IT',
+    ...(imgId ? { primaryImageOfPage: { '@id': imgId }, thumbnailUrl: absImage } : {}),
+  };
+
+  const articleNode = {
+    '@type': 'Article',
+    '@id': articleId,
+    isPartOf: { '@id': pageId },
+    author: { name: 'Alex Mufatti', '@id': AUTHOR_ID },
+    headline: title,
+    datePublished: published,
+    dateModified: modified,
+    mainEntityOfPage: { '@id': pageId },
+    publisher: { '@id': AUTHOR_ID },
+    inLanguage: 'it-IT',
+    ...(wordCount ? { wordCount } : {}),
+    ...(categories.length ? { articleSection: categories } : {}),
+    ...(imgId ? { image: { '@id': imgId }, thumbnailUrl: absImage } : {}),
+  };
+
+  const breadcrumbNode = {
+    '@type': 'BreadcrumbList',
+    '@id': `${pageUrl}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE },
+      { '@type': 'ListItem', position: 2, name: title },
+    ],
+  };
+
+  graph = [
+    websiteNode,
+    authorNode,
+    webpageNode,
+    articleNode,
+    breadcrumbNode,
+    ...(imageNode ? [imageNode] : []),
+  ];
+} else {
+  graph = [
+    websiteNode,
+    authorNode,
+    {
+      '@type': 'CollectionPage',
+      '@id': pageUrl,
+      url: pageUrl,
+      name: title,
+      isPartOf: { '@id': WEBSITE_ID },
+      description,
+      inLanguage: 'it-IT',
+    },
+  ];
+}
+
+const jsonLd = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{title}</title>
+{description && <meta name="description" content={description} />}
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+{type === 'article' && <meta name="author" content="Alex Mufatti" />}
+<link rel="canonical" href={canonicalURL} />
+{prevPage && <link rel="prev" href={new URL(prevPage, Astro.site).toString()} />}
+{nextPage && <link rel="next" href={new URL(nextPage, Astro.site).toString()} />}
+
+<!-- Open Graph -->
+<meta property="og:site_name" content="Code And Run" />
+<meta property="og:locale" content="it_IT" />
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{type === 'article' && publishedTime && (
+  <meta property="article:published_time" content={publishedTime.toISOString()} />
+)}
+{type === 'article' && (modifiedTime ?? publishedTime) && (
+  <meta property="article:modified_time" content={(modifiedTime ?? publishedTime)!.toISOString()} />
+)}
+{type === 'article' && (
+  <meta property="article:author" content="Alex Mufatti" />
+)}
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@alexmufatti" />
+<meta name="twitter:creator" content="@alexmufatti" />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+<meta name="twitter:image" content={ogImage} />
+{type === 'article' && (
+  <>
+    <meta name="twitter:label1" content="Scritto da" />
+    <meta name="twitter:data1" content="Alex Mufatti" />
+    {readingMinutes && (
+      <>
+        <meta name="twitter:label2" content="Tempo di lettura stimato" />
+        <meta name="twitter:data2" content={`${readingMinutes} minut${readingMinutes === 1 ? 'o' : 'i'}`} />
+      </>
+    )}
+  </>
+)}
+
+<!-- Fediverse / Mastodon -->
+<meta property="fediverse:creator" content="@alexmufatti@mastodon.uno" />
+<link rel="me" href="https://mastodon.uno/@alexmufatti" />
+
+<!-- JSON-LD structured data -->
+<script type="application/ld+json" set:html={jsonLd} />
+
+<!-- RSS autodiscovery -->
+<link rel="alternate" type="application/rss+xml" title="Code And Run" href="/feed/" />
+
+<!-- Favicon -->
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon.png" type="image/png" sizes="150x150" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+<!-- Fonts: preload + non-blocking swap to avoid render-blocking -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" /></noscript>
+
+<!-- Umami analytics -->
+<script async defer
+  src="https://analytics.alexmufatti.it/script.js"
+  data-website-id="6f9a3439-f0ec-4a2d-9939-1ac2372deaf4"
+  data-do-not-track="true"
+></script>
+
+<!-- Iubenda cookie banner -->
+<script type="text/javascript" is:inline>
+var _iub = _iub || [];
+_iub.csConfiguration = {"consentOnContinuedBrowsing":false,"floatingPreferencesButtonDisplay":"bottom-right","invalidateConsentWithoutLog":true,"siteId":2495620,"whitelabel":false,"cookiePolicyId":14439811,"lang":"it","banner":{"acceptButtonDisplay":true,"backgroundOverlay":true,"closeButtonRejects":true,"customizeButtonDisplay":true,"explicitWithdrawal":true,"position":"float-bottom-right"}};
+</script>
+<script type="text/javascript" src="//cs.iubenda.com/sync/2495620.js" async></script>
+<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+
+<!-- Preconnect esterni -->
+<link rel="preconnect" href="https://cdn.iubenda.com" />
+<link rel="preconnect" href="https://cs.iubenda.com" />
+<link rel="preconnect" href="https://analytics.alexmufatti.it" />
+
+<!-- Dark mode: blocca FOUC prima del render -->
+<script is:inline>
+(function(){
+  try {
+    var s = JSON.parse(localStorage.getItem('car_state') || '{}');
+    if (s.dark !== false) document.documentElement.classList.add('car-dark');
+  } catch(e) {}
+})();
+</script>

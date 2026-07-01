@@ -1,0 +1,12 @@
+---
+title: "Storage USB e mount point"
+date: 2008-09-13
+excerpt: "Problema: come tutti ormai vivo con quantità abnormi di dati memorizzate su dispositivi usb esterni. Come fare per avere questi dati sempre a disposizione sullo stesso “mount point” in linux? Soluzion..."
+categories: ["Blog"]
+tags: ["Computers"]
+wpId: 61
+---
+
+<p><strong>Problema:</strong> come tutti ormai vivo con quantità abnormi di dati memorizzate su dispositivi usb esterni. Come fare per avere questi dati sempre a disposizione sullo stesso “mount point” in linux?</p>
+
+<p><strong>Soluzione:</strong> ci sono 2 possibilità; la prima é quella di editare i files di regole di udev (ormai tutte le distribuzioni lo utilizzano) in modo da identificare il dispositivo hardware e assegnargli cosi&#39; un nome unico all’interno dello pseudo filesystem “dev”. Una volta ottenuto questo non resta che inserire in fstab la riga corretta per il montaggio del filesystem. Non é nulla di particolarmente complicato ma, come dicevo, c’é un’altra soluzione che é ancora piu&#39; semplice. Quasi tutte le distribuzioni moderne hanno abilitata la funzione di automount dei dispositivi usb; bene, il punto di mount utilizzato in maniera predefinita é la “label” del filesystem che deve essere montato (se presente). Quindi l’unica cosa da fare se volete avere un mount point fisso per il vostro filesystem non é altro che impostare una label a vostro piacimento per tutti i dispositivi usb, quando li collegherete ve li troverete montati automaticamente in <code>/media/&amp;lt;label&amp;gt;</code>. Una guida su come impostare la label per i tutti i filesystem linux la trovate <a href="https://help.ubuntu.com/community/RenameUSBDrive" title="guide">qui.</a> Inoltre, se avete necessità di impostare delle opzioni di mount avanzate, potete utilizzare in ogni caso il file fstab prendendo come device <code>/dev/disk/by-label/&amp;lt;label&amp;gt;</code> e forzare il punto di mount o le opzioni come meglio credete.</p>

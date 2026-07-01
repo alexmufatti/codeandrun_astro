@@ -1,0 +1,119 @@
+---
+title: "WCF ServiceHost e Cross Domain Policy"
+date: 2010-11-08
+excerpt: "A volte capita di dover accedere con un’applicazione web a servizi hostati in un dominio esterno. Questo si risolve nella maggioranza dei casi impostando in maniera corretta il file [clientaccesspolic..."
+categories: ["Blog"]
+tags: ["Programming"]
+wpId: 56
+---
+
+<p>A volte capita di dover accedere con un’applicazione web a servizi hostati in un dominio esterno. Questo si risolve nella maggioranza dei casi impostando in maniera corretta il file <code>[clientaccesspolicy.xml](http://msdn.microsoft.com/en-us/library/cc197955(VS.95).aspx &quot;clientaccesspolicy&quot;).</code></p>
+
+<p>Nel caso in cui però il Web Service in questione non sia hostato da un vero e proprio web server ma da un’applicazione .NET (sia essa console o form) si deve ovviare al problema della Cross Domain Policy in manera più <em>fantasiosa</em> ((poi dicono che gli informatici non hanno fantasia :-) )) .</p>
+
+<p>_</p>
+
+<p>_Quello che sto per descrivere é un modo semplice per <em>simulare</em> la presenza del file <code>clientaccesspolicy.xml</code> quando si ha a che fare con un ServiceHost.</p>
+
+<p>Supponendo di avere già il Web Service funzionante (<code>MyService</code>), quello che resta da fare é far implementare ad esso un’interfaccia del tipo:</p>
+
+```
+[ServiceContract]
+public interface IPolicyRetriever
+{
+    [OperationContract]
+    [WebGet(UriTemplate = "/clientaccesspolicy.xml")]
+    Stream GetSilverlightPolicy();
+}
+```
+
+```
+[ServiceContract]
+public interface IPolicyRetriever
+{
+    [OperationContract]
+    [WebGet(UriTemplate = "/clientaccesspolicy.xml")]
+    Stream GetSilverlightPolicy();
+}
+```
+<p>Inquesta interfaccia specifichiamo che il servizio deve rispondere quando viene interrogato l’Uri <code>/clientaccesspolicy.xml</code>.</p>
+
+<p>Il gioco è fatto.</p>
+
+<p>Basta ora implementare il service in un modo simile a questo:</p>
+
+```
+public Stream GetSilverlightPolicy()
+{
+       string result = @
+
+                              ";
+      WebOperationContext.Current.OutgoingResponse.ContentType = "application/xml";
+      return new MemoryStream(Encoding.UTF8.GetBytes(result));
+}
+```
+
+```
+public Stream GetSilverlightPolicy()
+{
+       string result = @
+
+                              ";
+      WebOperationContext.Current.OutgoingResponse.ContentType = "application/xml";
+      return new MemoryStream(Encoding.UTF8.GetBytes(result));
+}
+```
+<p>e creare il ServiceHost dove aggiungere i due endpoint.</p>
+
+```
+class Program
+    {
+        static void Main(string[] args)
+        {
+            Uri baseAddress = new Uri("http://localhost:9090");
+            // Create the ServiceHost.
+            using (ServiceHost host = new ServiceHost(typeof(MyService), baseAddress))
+            {
+                // Enable metadata publishing.
+                ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
+                smb.HttpGetEnabled = true;
+                smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
+                host.Description.Behaviors.Add(smb);
+                host.AddServiceEndpoint(typeof(IMyService), new BasicHttpBinding(), new Uri("http://localhost:9090/myservice.svc"));
+
+                host.AddServiceEndpoint(typeof(IPolicyRetriever), new WebHttpBinding(), "").Behaviors.Add(new WebHttpBehavior());
+
+                host.Open();
+                Console.ReadLine();
+                host.Close();
+            }
+        }
+    }
+```
+
+```
+class Program
+    {
+        static void Main(string[] args)
+        {
+            Uri baseAddress = new Uri("http://localhost:9090");
+            // Create the ServiceHost.
+            using (ServiceHost host = new ServiceHost(typeof(MyService), baseAddress))
+            {
+                // Enable metadata publishing.
+                ServiceMetadataBehavior smb = new ServiceMetadataBehavior();
+                smb.HttpGetEnabled = true;
+                smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
+                host.Description.Behaviors.Add(smb);
+                host.AddServiceEndpoint(typeof(IMyService), new BasicHttpBinding(), new Uri("http://localhost:9090/myservice.svc"));
+
+                host.AddServiceEndpoint(typeof(IPolicyRetriever), new WebHttpBinding(), "").Behaviors.Add(new WebHttpBehavior());
+
+                host.Open();
+                Console.ReadLine();
+                host.Close();
+            }
+        }
+    }
+```
+<p>Ecco fatto; il nostro client potrà accedere al WebService senza problemi.</p>

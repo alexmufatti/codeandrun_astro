@@ -1,0 +1,19 @@
+---
+title: "IP Address in bash script"
+date: 2012-06-06
+excerpt: "In linux you can get all of yours inferfaces IP with something like this: sudo ifconfig grep &#39;inet addr:&#39; awk -F: &#39;{ print $2}&#39; awk &#39;{ print $1 }&#39; sudo ifconfig grep &#39;inet..."
+categories: ["Blog"]
+tags: ["Linux"]
+wpId: 18
+---
+
+<p>In linux you can get all of yours inferfaces IP with something like this:</p>
+
+```
+sudo ifconfig   grep &#39;inet addr:&#39; awk -F: &#39;{ print $2}&#39;  awk &#39;{ print $1 }&#39;
+```
+
+```
+sudo ifconfig   grep &#39;inet addr:&#39; awk -F: &#39;{ print $2}&#39;  awk &#39;{ print $1 }&#39;
+```
+<p>For example on my machine this command will output:</p>

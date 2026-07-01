@@ -1,0 +1,277 @@
+---
+import Base from '../layouts/Base.astro';
+
+// ── Fetch stats JSON da CDN (generato dal bottone "Aggiorna statistiche Running") ──
+const STATS_URL = 'https://cdn.codeandrun.it/data/running-stats.json';
+
+type YearTotal = { year: number; total_distance: number; elevation: number; count: number; total_moving: number; kudos: number };
+type PersonalRecord = { name: string; distanceMeters: number; elapsedTime: number; startDate: string };
+type StatsData = {
+  updatedAt: string;
+  yearTotals: YearTotal[];
+  chartHeader: string[];
+  chartRows: (string | number | null)[][];
+  chartYears: number[];
+  personalRecords: PersonalRecord[];
+};
+
+let stats: StatsData | null = null;
+try {
+  const res = await fetch(STATS_URL);
+  if (res.ok) stats = await res.json();
+} catch { /* fallback al contenuto statico */ }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtTime(s: number): string {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+function fmtPace(dist: number, secs: number): string {
+  const ppm = (secs / dist) * 1000;
+  return `${Math.floor(ppm / 60)}:${String(Math.round(ppm % 60)).padStart(2,'0')}/km`;
+}
+function fmtMoving(s: number): string {
+  return `${Math.floor(s / 3600)}h ${String(Math.floor((s % 3600) / 60)).padStart(2,'0')}m`;
+}
+
+const COLORS = ["#FC4C02","#1E3A8A","#10B981","#3B82F6","#FF7A3D","#6366F1","#F59E0B"];
+const FEATURED_PR = ["5k","10k","15k","Half-Marathon","30k","Marathon"];
+
+function buildPrHtml(records: PersonalRecord[]): string {
+  if (!records.length) return '';
+  const featured = records.filter(r => FEATURED_PR.includes(r.name));
+  const rest = records.filter(r => !FEATURED_PR.includes(r.name));
+  const cards = featured.map(pr => {
+    const d = new Date(pr.startDate).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' });
+    return `<div class="crst-pr-card">
+  <div class="crst-pr-label">${pr.name}</div>
+  <div class="crst-pr-time">${fmtTime(pr.elapsedTime)}</div>
+  <div class="crst-pr-pace">${fmtPace(pr.distanceMeters, pr.elapsedTime)}</div>
+  <div class="crst-pr-date">${d}</div>
+</div>`;
+  }).join('\n');
+  const restRows = rest.map(pr => {
+    const d = new Date(pr.startDate).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' });
+    return `<tr><td>${pr.name}</td><td class="r">${fmtTime(pr.elapsedTime)}</td><td class="m">${fmtPace(pr.distanceMeters, pr.elapsedTime)}</td><td class="m">${d}</td></tr>`;
+  }).join('\n');
+  const restTable = rest.length ? `<table class="crst-table" style="margin-top:12px"><thead><tr><th>Distanza</th><th class="r">Tempo</th><th class="r">Passo</th><th class="r">Data</th></tr></thead><tbody>${restRows}</tbody></table>` : '';
+  return `<div class="crst"><div class="crst-pr-grid">${cards}</div>${restTable}</div>`;
+}
+
+function buildYearButtons(years: number[]): string {
+  const hidden = new Set(years.slice(0, Math.max(0, years.length - 4)));
+  return years.map((y, i) => {
+    const c = COLORS[i % COLORS.length];
+    const isHidden = hidden.has(y);
+    const bg = isHidden ? 'transparent' : c;
+    const fg = isHidden ? c : '#fff';
+    return `<button id="btn-year-${y}" onclick="toggleYear(${i})" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid ${c};background:${bg};color:${fg};transition:all 0.15s">${y}</button>`;
+  }).join('\n');
+}
+
+function buildTableHtml(yearTotals: YearTotal[]): string {
+  const cur = new Date().getFullYear();
+  const rows = yearTotals.map(y => {
+    const cell = y.year === cur
+      ? `<span class="crst-yc">${y.year}<span class="crst-badge">in corso</span></span>`
+      : `<span class="crst-yn">${y.year}</span>`;
+    return `<tr><td>${cell}</td><td class="r"><span class="crst-km">${(y.total_distance/1000).toFixed(0)}</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">${y.elevation.toFixed(0)} <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">${y.count}</td><td class="m">${fmtMoving(y.total_moving)}</td><td class="m">${y.kudos}</td></tr>`;
+  }).join('\n');
+  return `<div class="crst" style="margin-top:24px"><table class="crst-table"><thead><tr><th>Anno</th><th class="r">Distanza</th><th class="r">Dislivello</th><th class="r">Attività</th><th class="r">Tempo</th><th class="r">Kudos</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function buildChartDataJs(header: string[], rows: (string|number|null)[][]): string {
+  const dataRows = rows.map(r => {
+    const vals = r.slice(1).map(v => v === null ? 'null' : v).join(', ');
+    return `      ['${r[0]}', ${vals}]`;
+  }).join(',\n');
+  return `[${JSON.stringify(header)},\n${dataRows}\n    ]`;
+}
+
+const updatedAt = stats?.updatedAt
+  ? new Date(stats.updatedAt).toLocaleDateString('it-IT', { day:'numeric', month:'long', year:'numeric' })
+  : '23 aprile 2026';
+---
+<Base title="Running — Code and Run" description="Statistiche di corsa, personal record e diari di allenamento.">
+  <main class="car-main car-main--page" id="main">
+    <article class="car-single">
+      <div class="car-single__header car-container">
+        <h1 class="car-single__title">Running</h1>
+      </div>
+      <div class="car-single__content car-container">
+
+<style is:global>
+.crst{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.crst-date{font-size:13px;color:#9ca3af;margin:0 0 8px}
+.crst-table{width:100%;border-collapse:collapse;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.crst-table th{padding:10px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;background:#f9fafb;border-bottom:1px solid #e5e7eb}
+.crst-table th.r{text-align:right}
+.crst-table td{padding:11px 16px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#111827}
+.crst-table td.r{text-align:right;font-variant-numeric:tabular-nums}
+.crst-table td.m{text-align:right;font-variant-numeric:tabular-nums;color:#6b7280}
+.crst-pr-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:0}
+.crst-pr-card{display:inline-block;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:14px 20px;min-width:120px;text-align:center}
+.crst-pr-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7280;margin-bottom:4px}
+.crst-pr-time{font-size:22px;font-weight:700;color:#111827;line-height:1.2}
+.crst-pr-pace{font-size:12px;color:#FC4C02;font-weight:600;margin-top:2px}
+.crst-pr-date{font-size:11px;color:#9ca3af;margin-top:2px}
+.crst-yn{font-weight:700;font-size:15px;color:#111827}
+.crst-yc{font-weight:700;font-size:15px;color:#FC4C02}
+.crst-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:600;background:#FC4C02;color:#fff;padding:1px 6px;border-radius:99px;vertical-align:middle}
+.crst-km{font-weight:600}
+.crst-chart-wrap{background:#fff;border-radius:10px;padding:8px}
+.car-dark .crst-table th{color:#9ca3af;background:#1f2937;border-bottom:1px solid #374151}
+.car-dark .crst-table td{border-bottom:1px solid #374151;color:#f9fafb}
+.car-dark .crst-table td.m{color:#9ca3af}
+.car-dark .crst-pr-card{background:#1f2937;border-color:#374151}
+.car-dark .crst-pr-label{color:#9ca3af}
+.car-dark .crst-pr-time{color:#f9fafb}
+.car-dark .crst-yn{color:#f9fafb}
+.car-dark .crst-chart-wrap{background:#111827}
+</style>
+
+<p class="crst crst-date"><em>Aggiornato il {updatedAt}</em></p>
+
+{stats ? (
+  <Fragment set:html={buildPrHtml(stats.personalRecords)} />
+) : (
+<div class="crst">
+<div class="crst-pr-grid">
+<div class="crst-pr-card"><div class="crst-pr-label">5k</div><div class="crst-pr-time">18:20</div><div class="crst-pr-pace">3:40/km</div><div class="crst-pr-date">14 mar 2024</div></div>
+<div class="crst-pr-card"><div class="crst-pr-label">10k</div><div class="crst-pr-time">38:05</div><div class="crst-pr-pace">3:49/km</div><div class="crst-pr-date">1 dic 2024</div></div>
+<div class="crst-pr-card"><div class="crst-pr-label">Half-Marathon</div><div class="crst-pr-time">1:24:57</div><div class="crst-pr-pace">4:02/km</div><div class="crst-pr-date">15 feb 2026</div></div>
+<div class="crst-pr-card"><div class="crst-pr-label">Marathon</div><div class="crst-pr-time">3:04:28</div><div class="crst-pr-pace">4:22/km</div><div class="crst-pr-date">15 mar 2026</div></div>
+</div>
+</div>
+)}
+
+{stats ? (
+  <Fragment set:html={`<div class="crst" style="margin-top:24px;margin-bottom:4px">${buildYearButtons(stats.chartYears)}</div>`} />
+) : (
+<div class="crst" style="margin-top:24px;margin-bottom:4px">
+<button id="btn-year-2011" onclick="toggleYear(0)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #FC4C02;background:transparent;color:#FC4C02;transition:all 0.15s">2011</button>
+<button id="btn-year-2012" onclick="toggleYear(1)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #1E3A8A;background:transparent;color:#1E3A8A;transition:all 0.15s">2012</button>
+<button id="btn-year-2013" onclick="toggleYear(2)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #10B981;background:transparent;color:#10B981;transition:all 0.15s">2013</button>
+<button id="btn-year-2014" onclick="toggleYear(3)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #3B82F6;background:transparent;color:#3B82F6;transition:all 0.15s">2014</button>
+<button id="btn-year-2015" onclick="toggleYear(4)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #FF7A3D;background:transparent;color:#FF7A3D;transition:all 0.15s">2015</button>
+<button id="btn-year-2016" onclick="toggleYear(5)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #6366F1;background:transparent;color:#6366F1;transition:all 0.15s">2016</button>
+<button id="btn-year-2017" onclick="toggleYear(6)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #F59E0B;background:transparent;color:#F59E0B;transition:all 0.15s">2017</button>
+<button id="btn-year-2018" onclick="toggleYear(7)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #FC4C02;background:transparent;color:#FC4C02;transition:all 0.15s">2018</button>
+<button id="btn-year-2019" onclick="toggleYear(8)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #1E3A8A;background:transparent;color:#1E3A8A;transition:all 0.15s">2019</button>
+<button id="btn-year-2020" onclick="toggleYear(9)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #10B981;background:transparent;color:#10B981;transition:all 0.15s">2020</button>
+<button id="btn-year-2021" onclick="toggleYear(10)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #3B82F6;background:transparent;color:#3B82F6;transition:all 0.15s">2021</button>
+<button id="btn-year-2022" onclick="toggleYear(11)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #FF7A3D;background:transparent;color:#FF7A3D;transition:all 0.15s">2022</button>
+<button id="btn-year-2023" onclick="toggleYear(12)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #6366F1;background:#6366F1;color:#fff;transition:all 0.15s">2023</button>
+<button id="btn-year-2024" onclick="toggleYear(13)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #F59E0B;background:#F59E0B;color:#fff;transition:all 0.15s">2024</button>
+<button id="btn-year-2025" onclick="toggleYear(14)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #FC4C02;background:#FC4C02;color:#fff;transition:all 0.15s">2025</button>
+<button id="btn-year-2026" onclick="toggleYear(15)" style="margin:0 4px 8px 0;padding:4px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid #1E3A8A;background:#1E3A8A;color:#fff;transition:all 0.15s">2026</button>
+</div>
+)}
+
+<div class="crst-chart-wrap">
+  <div id="running-stats-chart" style="width:100%;height:400px"></div>
+</div>
+
+{stats ? (
+  <Fragment set:html={buildTableHtml(stats.yearTotals)} />
+) : (
+<div class="crst" style="margin-top:24px">
+<table class="crst-table">
+<thead><tr><th>Anno</th><th class="r">Distanza</th><th class="r">Dislivello</th><th class="r">Attività</th><th class="r">Tempo</th><th class="r">Kudos</th></tr></thead>
+<tbody>
+<tr><td><span class="crst-yc">2026<span class="crst-badge">in corso</span></span></td><td class="r"><span class="crst-km">963</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">4151 <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">67</td><td class="m">77h 59m</td><td class="m">438</td></tr>
+<tr><td><span class="crst-yn">2025</span></td><td class="r"><span class="crst-km">2617</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">11690 <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">191</td><td class="m">215h 04m</td><td class="m">1015</td></tr>
+<tr><td><span class="crst-yn">2024</span></td><td class="r"><span class="crst-km">3139</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">14505 <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">227</td><td class="m">257h 36m</td><td class="m">667</td></tr>
+<tr><td><span class="crst-yn">2023</span></td><td class="r"><span class="crst-km">1815</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">8891 <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">159</td><td class="m">154h 05m</td><td class="m">1085</td></tr>
+<tr><td><span class="crst-yn">2022</span></td><td class="r"><span class="crst-km">1928</span> <span style="color:#9ca3af;font-size:12px">km</span></td><td class="r">7633 <span style="color:#9ca3af;font-size:12px">m</span></td><td class="r">163</td><td class="m">157h 50m</td><td class="m">1040</td></tr>
+</tbody>
+</table>
+</div>
+)}
+
+      </div>
+    </article>
+  </main>
+</Base>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript" is:inline define:vars={{ chartYears: stats?.chartYears, chartHeader: stats?.chartHeader, chartRows: stats?.chartRows }}>
+  var _years = chartYears || [2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025,2026];
+  var _colors = ["#FC4C02","#1E3A8A","#10B981","#3B82F6","#FF7A3D","#6366F1","#F59E0B"];
+  var _hidden = {};
+  _years.forEach(function(year, i) { if (i < _years.length - 4) _hidden[i] = true; });
+  var _chart, _data;
+
+  function _isDark() { return document.documentElement.classList.contains('car-dark'); }
+
+  function drawChart() {
+    if (!_chart || !_data) return;
+    var dark = _isDark();
+    var textColor  = dark ? '#9ca3af' : '#6b7280';
+    var gridColor  = dark ? '#374151' : '#f3f4f6';
+    var baseColor  = dark ? '#374151' : '#e5e7eb';
+    var titleColor = dark ? '#f9fafb' : '#111827';
+    var bgColor    = dark ? '#111827' : '#ffffff';
+
+    var visibleCols = [0];
+    var seriesOpt = {};
+    var si = 0;
+    _years.forEach(function(year, i) {
+      if (!_hidden[i]) {
+        visibleCols.push(i + 1);
+        seriesOpt[si] = { color: _colors[i % _colors.length], lineWidth: 2 };
+        si++;
+      }
+    });
+    var view = new google.visualization.DataView(_data);
+    view.setColumns(visibleCols);
+    _chart.draw(view, {
+      title: 'Km cumulativi per anno',
+      backgroundColor: { fill: bgColor },
+      titleTextStyle: { color: titleColor, fontSize: 14 },
+      curveType: 'function',
+      legend: { position: 'bottom', textStyle: { color: textColor, fontSize: 12 } },
+      chartArea: { width: '85%', height: '75%' },
+      series: seriesOpt,
+      hAxis: { textStyle: { fontSize: 12, color: textColor }, gridlines: { color: gridColor }, baselineColor: baseColor },
+      vAxis: { textStyle: { fontSize: 12, color: textColor }, gridlines: { color: gridColor }, baselineColor: baseColor }
+    });
+  }
+
+  var _rawRows = chartRows || [
+    ['Gen', 0,6.7,78.6,0,50.8,22.6,108.5,233.6,189,211.9,171.7,30.3,136.6,247.7,238.8,254],
+    ['Feb', 0,6.7,118.1,14.1,50.8,38.2,229.2,441.2,244.7,503.4,312,177.5,167.2,493.8,444.2,489.3],
+    ['Mar', 0,6.7,161,65.4,50.8,92.6,310.3,736,372.9,672.6,460,370.8,285.1,800.1,737.5,737.3],
+    ['Apr', 9.6,6.7,168.9,75.2,50.8,166.5,427.1,930.9,514.7,772,575.9,555,413.6,1037.1,1015.5,null],
+    ['Mag', 9.6,6.7,174.9,116.9,66.1,236.1,576.6,1052.9,673.6,873.1,702.5,727.6,605.7,1255.5,1173.3,null],
+    ['Giu', 9.6,6.7,174.9,199.5,147.3,268.3,642.3,1184.3,788.6,916.9,859,858.6,670,1518.6,1303,null],
+    ['Lug', 9.6,6.7,181.9,292.1,240.3,341.1,716.2,1285.4,988.2,1051,1008.6,1019.6,861,1816.1,1529.8,null],
+    ['Ago', 9.6,21.7,181.9,383.5,340.9,458.5,817.9,1461,1146.2,1191.3,1140.2,1131.7,1064.6,2075.7,1813.1,null],
+    ['Set', 9.6,123.4,202.8,464.5,409.1,551.4,856.1,1603.9,1281.5,1295.2,1195,1372.9,1243.1,2340.6,2130.8,null],
+    ['Ott', 9.6,178.5,209.9,549.7,509.9,656.7,1009.2,1806.4,1499.6,1446.7,1236.6,1574.9,1459.9,2599.6,2267.6,null],
+    ['Nov', 9.6,226.5,209.9,604,599.2,751.4,1178.3,1966.9,1699.7,1592.4,1244.6,1815.3,1627,2866.4,2416.1,null],
+    ['Dic', 9.6,233.5,209.9,618.2,680.7,802.5,1288.4,2159,1826.1,1757.5,1244.6,1927.8,1815.2,3139.3,2616.7,null]
+  ];
+  var _header = chartHeader || ["Mese","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024","2025","2026"];
+
+  google.charts.load('current', {'packages':['corechart']});
+  google.charts.setOnLoadCallback(function() {
+    var tableData = [_header].concat(_rawRows);
+    _data = google.visualization.arrayToDataTable(tableData);
+    _chart = new google.visualization.LineChart(document.getElementById('running-stats-chart'));
+    drawChart();
+    new MutationObserver(drawChart).observe(document.documentElement, { attributeFilter: ['class'] });
+  });
+
+  function toggleYear(i) {
+    var visibleCount = _years.filter(function(year, k) { return !_hidden[k]; }).length;
+    if (!_hidden[i]) { if (visibleCount === 1) return; }
+    _hidden[i] = !_hidden[i];
+    var btn = document.getElementById('btn-year-' + _years[i]);
+    var color = _colors[i % _colors.length];
+    btn.style.background = _hidden[i] ? 'transparent' : color;
+    btn.style.color = _hidden[i] ? color : '#fff';
+    drawChart();
+  }
+</script>

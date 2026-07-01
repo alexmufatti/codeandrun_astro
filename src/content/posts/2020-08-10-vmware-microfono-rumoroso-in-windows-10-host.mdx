@@ -1,0 +1,37 @@
+---
+title: "VMware: Microfono rumoroso in Windows 10 host"
+date: 2020-08-10
+excerpt: "Utilizzando Linux come sistema operativo di base a volte capita di dover avviare delle macchine virtuali Windows per eseguire quei programmi che su linux non esistono o hanno funzionalità limitate. Es..."
+categories: ["Running", "Sport"]
+wpId: 579
+---
+
+<p><img src="/images/2021/08/mic.jpg" alt="image" /></p>
+
+<p>Utilizzando Linux come sistema operativo di base a volte capita di dover avviare delle macchine virtuali Windows per eseguire quei programmi che su linux non esistono o hanno funzionalità limitate. Esempi tipici sono <em>Skype for Business</em> che non esiste in linux o <em>Teams</em> che non ha tutte le funzionalità della versione nativa.</p>
+
+<p>Purtroppo però l’audio del microfono all’interno della VM a volte risulta estremamente disturbato, tanto da essere inutilizzabile.</p>
+
+<p>Dopo un po&#39; di prove e molte ricerche ho trovato un modo, assolutamente contro-intuitivo, per sistemare questo problema.</p>
+
+<p>Per prima cosa installate i VmWareTools se non lo avete ancora fatto e assicuratevi che nella macchina virtuale sia configurata una scheda audio in modalità <code>auto detect</code>.</p>
+
+<p><img src="/images/2021/08/setup.jpg" alt="image" /></p>
+
+<p>A questo punto spegnete la macchina virtuale ed editate il corrispettivo file <code>.vmx</code>.</p>
+
+<p>Cercate la riga contenente <code>sound.virtualDev = &quot;hdaudio&quot;</code> e rimuovetela. Sì, questo è il passaggio contro-intuitivo: rimuovendo quella riga si eviterà che VmWare simuli una scheda audio virtuale e utilizzi invece quella presente sulla vostra macchina.</p>
+
+<p>Al riavvio della macchina virtuale noterete che non viene rilevato nessun hardware per la riproduzione audio. Ora montate il cd dei vmware tools come se voleste reinstallarli (potete anche usare la voce del menu di vmware) ma non fatelo. Aprite un <em>prompt</em> e andate sul device che contiene l’installer. Da qui lanciate il comando <code>setup64.exe /a</code>. L’opzione <code>a</code> fará in modo che i vmware tools, al posto di essere installati, siano solo scompattati una cartella di vostra scelta. Scegliete una cartella e continuate.</p>
+
+<p>Ora aprite il <code>Device Manager</code>; troverete una periferica multimediale non riconosciuta. Scegliete di aggiornare il driver e, invece di farlo cercare automaticamente dal sistema operativo, scegliete di indicare voi dove trovarlo.</p>
+
+<p><img src="/images/2021/08/browse.jpg" alt="image" /></p>
+
+<p>Come percorso scegliete quello dove avete scompattato i vmware Tools e poi navigate nelle sotto cartelle <code>vmware/drivers/audio/vista</code>.</p>
+
+<p><img src="/images/2021/08/folders.jpg" alt="image" /></p>
+
+<p>Verrà quindi installato il driver corretto e da quel momento non dovreste avere più problemi di disturbi nell’uso del microfono all’interno di Windows 10 in vmware!</p>
+
+<p><img src="/images/2021/08/done.jpg" alt="image" /></p>

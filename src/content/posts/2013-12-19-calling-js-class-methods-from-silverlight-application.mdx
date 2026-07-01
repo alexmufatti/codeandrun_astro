@@ -1,0 +1,44 @@
+---
+title: "Calling JS class methods from Silverlight application"
+date: 2013-12-19
+excerpt: "I’m working on a project in which we have to call some JS method of the containing page from a Silverlight application. It seems to be really straight forward like: HtmlPage.Window.Invoke(&quot;Global..."
+categories: ["Blog"]
+tags: ["Programming"]
+wpId: 3
+---
+
+<p>I’m working on a project in which we have to call some JS method of the containing page from a Silverlight application.</p>
+
+<p>It seems to be really straight forward like:</p>
+
+```
+HtmlPage.Window.Invoke("GlobalJsMethod",param1,param2);
+```
+
+```
+HtmlPage.Window.Invoke("GlobalJsMethod",param1,param2);
+```
+<p>But this works only for global methods and not for JS class methods.</p>
+
+<p>In fact this will not work:</p>
+
+<p>You can make a global wrapper for every class methods but you can also do something like this:</p>
+
+```
+private ScriptObject _jsObject = HtmlPage.Window.Eval("JsClassInstance") as ScriptObject;
+private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+                _jsObject.Invoke("JsMethod",param1,param2);
+        }
+```
+
+```
+private ScriptObject _jsObject = HtmlPage.Window.Eval("JsClassInstance") as ScriptObject;
+private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+                _jsObject.Invoke("JsMethod",param1,param2);
+        }
+```
+<p>that is far more elegant.</p>
+
+<p>This is only a quick tip. Maybe I’ll write a more detailed post an JS-Silverlight interaction in the future.</p>

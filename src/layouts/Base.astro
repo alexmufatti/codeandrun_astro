@@ -1,0 +1,45 @@
+---
+import BaseHead from '../components/layout/BaseHead.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  modifiedTime?: Date;
+  categories?: string[];
+  nextPage?: string;
+  prevPage?: string;
+  wordCount?: number;
+}
+const { title, description, image, type, publishedTime, modifiedTime, categories, nextPage, prevPage, wordCount } = Astro.props;
+---
+<!doctype html>
+<html lang="it" class="">
+<head>
+  <BaseHead
+    title={title}
+    description={description}
+    image={image}
+    type={type}
+    publishedTime={publishedTime}
+    modifiedTime={modifiedTime}
+    categories={categories}
+    nextPage={nextPage}
+    prevPage={prevPage}
+    wordCount={wordCount}
+  />
+  <link rel="stylesheet" href="/main.css" />
+  <link rel="stylesheet" href="/plugin.css" />
+</head>
+<body>
+  <Header />
+  <slot />
+  <Footer />
+  <script src="/main.js" is:inline></script>
+  <script src="/strava-accordion.js" is:inline></script>
+</body>
+</html>

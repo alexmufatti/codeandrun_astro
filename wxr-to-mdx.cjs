@@ -377,9 +377,11 @@ for (const item of items) {
     const safeSlug = (slug || `post-${postId}`)
       .replace(/%[0-9a-fA-F]{2}/g, '') // strip URL-encoded sequences (emoji, special chars)
       .replace(/[^\x00-\x7F]/g, '')    // strip remaining non-ASCII
+      .replace(/_/g, '-')               // underscores -> dashes
       .replace(/--+/g, '-')             // collapse multiple dashes
       .replace(/^-|-$/g, '');           // trim leading/trailing dashes
-    const filename = `${safeSlug || `post-${postId}`}.mdx`;
+    // Filename standard: YYYY-MM-DD-slug-con-trattini.mdx
+    const filename = `${dateISO}-${safeSlug || `post-${postId}`}.mdx`;
     fs.writeFileSync(path.join(OUT_DIR, filename), mdxFile, 'utf8');
     written++;
     process.stdout.write(`✓ ${filename}\n`);

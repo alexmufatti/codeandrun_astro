@@ -14,5 +14,6 @@ FROM nginx:alpine AS server
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY redirects.conf /etc/nginx/redirects.conf
 
 EXPOSE 80

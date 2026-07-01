@@ -76,31 +76,13 @@
         },
         {
           "name": "training_types",
-          "title": "Tipo allenamento per uscita",
-          "type": "choice",
-          "multiple": true,
-          "choices": [
-            "🟢",
-            "🟡",
-            "🔴",
-            "🏁"
-          ]
+          "title": "Tipo allenamento per uscita (🟢 🟡 🔴 🏁 — una per uscita, ripetibili)",
+          "type": "list"
         },
         {
           "name": "training_feelings",
-          "title": "Sensazioni per uscita",
-          "type": "choice",
-          "multiple": true,
-          "choices": [
-            "🙂",
-            "😀",
-            "😐",
-            "🫤",
-            "🙁",
-            "😭",
-            "☠️",
-            "🏁"
-          ]
+          "title": "Sensazioni per uscita (🙂 😀 😐 🫤 🙁 😭 ☠️ 🏁 — una per uscita, ripetibili)",
+          "type": "list"
         },
         {
           "name": "places",

@@ -1,4 +1,4 @@
 {
-  "recommendations": ["astro-build.astro-vscode", "unifiedjs.vscode-mdx", "anthropic.claude-code"],
+  "recommendations": ["astro-build.astro-vscode", "unifiedjs.vscode-mdx", "anthropic.claude-code", "eliostruyf.vscode-front-matter"],
   "unwantedRecommendations": []
 }

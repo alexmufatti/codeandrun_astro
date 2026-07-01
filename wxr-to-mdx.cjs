@@ -294,8 +294,8 @@ function buildFrontmatter(d) {
   if (d.car_week)         lines.push(`car_week: "${d.car_week}"`);
   if (d.car_km)           lines.push(`car_km: "${d.car_km}"`);
   if (d.car_race)         lines.push(`car_race: true`);
-  if (d.training_types)   lines.push(`training_types: ${yamlStr(d.training_types)}`);
-  if (d.training_feelings) lines.push(`training_feelings: ${yamlStr(d.training_feelings)}`);
+  if (d.training_types)   lines.push(`training_types: [${d.training_types.split(',').map(s => yamlStr(s.trim())).join(', ')}]`);
+  if (d.training_feelings) lines.push(`training_feelings: [${d.training_feelings.split(',').map(s => yamlStr(s.trim())).join(', ')}]`);
   if (d.places)           lines.push(`places: ${yamlStr(d.places)}`);
   if (d.wpId)             lines.push(`wpId: ${d.wpId}`);
   lines.push('---');

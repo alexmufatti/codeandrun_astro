@@ -1,0 +1,124 @@
+{
+  "$schema": "https://frontmatter.codes/frontmatter.schema.json",
+  "frontMatter.framework.id": "astro",
+  "frontMatter.content.pageFolders": [
+    {
+      "title": "Posts",
+      "path": "[[workspace]]/src/content/posts"
+    }
+  ],
+  "frontMatter.taxonomy.contentTypes": [
+    {
+      "name": "posts",
+      "pageBundle": false,
+      "previewPath": "",
+      "filePrefix": "{{date}}-",
+      "fields": [
+        {
+          "name": "title",
+          "title": "Titolo",
+          "type": "string",
+          "single": true
+        },
+        {
+          "name": "date",
+          "title": "Data",
+          "type": "datetime",
+          "isPublishDate": true
+        },
+        {
+          "name": "excerpt",
+          "title": "Estratto",
+          "type": "string"
+        },
+        {
+          "name": "seoDescription",
+          "title": "SEO Description",
+          "type": "string"
+        },
+        {
+          "name": "categories",
+          "title": "Categorie",
+          "type": "categories"
+        },
+        {
+          "name": "tags",
+          "title": "Tag",
+          "type": "tags"
+        },
+        {
+          "name": "featuredImage",
+          "title": "Immagine in evidenza",
+          "type": "image"
+        },
+        {
+          "name": "featuredImageAlt",
+          "title": "Alt immagine",
+          "type": "string"
+        },
+        {
+          "name": "car_week",
+          "title": "Settimana (es. W40)",
+          "type": "string"
+        },
+        {
+          "name": "car_km",
+          "title": "Km totali",
+          "type": "string"
+        },
+        {
+          "name": "car_race",
+          "title": "È una gara",
+          "type": "boolean"
+        },
+        {
+          "name": "training_types",
+          "title": "Tipo allenamento per uscita",
+          "type": "choice",
+          "multiple": true,
+          "choices": ["🟢", "🟡", "🔴", "🏁"]
+        },
+        {
+          "name": "training_feelings",
+          "title": "Sensazioni per uscita",
+          "type": "choice",
+          "multiple": true,
+          "choices": ["🙂", "😀", "😐", "🫤", "🙁", "😭", "☠️", "🏁"]
+        },
+        {
+          "name": "places",
+          "title": "Luoghi",
+          "type": "string"
+        },
+        {
+          "name": "wpId",
+          "title": "WordPress ID",
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "frontMatter.taxonomy.categories": [
+    "Running",
+    "Sport",
+    "Blog"
+  ],
+  "frontMatter.taxonomy.tags": [
+    "Running",
+    "Sport",
+    "variazioni",
+    "fondo-lento",
+    "progressivo",
+    "ripetute",
+    "lungo-maratona",
+    "gara",
+    "Apple",
+    "Books",
+    "Computers",
+    "Life",
+    "Linux",
+    "My Choices",
+    "Photos",
+    "Programming"
+  ]
+}

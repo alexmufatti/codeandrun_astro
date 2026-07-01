@@ -1,20 +1,20 @@
 ---
 interface Props {
-  training_types?: string;
-  training_feelings?: string;
+  training_types?: string[];
+  training_feelings?: string[];
 }
 const { training_types, training_feelings } = Astro.props;
 
-if (!training_types && !training_feelings) return;
+if (!training_types?.length && !training_feelings?.length) return;
 
-const types    = (training_types    ?? '').split(',').map(s => s.trim()).filter(Boolean);
-const feelings = (training_feelings ?? '').split(',').map(s => s.trim()).filter(Boolean);
+const types    = training_types    ?? [];
+const feelings = training_feelings ?? [];
 const count    = Math.max(types.length, feelings.length);
 
 const feelingMap: Record<string, 'good' | 'ok' | 'bad'> = {
-  '😊': 'good', '😎': 'good', '💪': 'good', '🙂': 'good', '😄': 'good',
-  '😐': 'ok',   '🤔': 'ok',   '😅': 'ok',
-  '😤': 'bad',  '😫': 'bad',  '😴': 'bad',  '😢': 'bad',  '🤕': 'bad',
+  '🙂': 'good', '😀': 'good', '🏁': 'good',
+  '😐': 'ok',   '🫤': 'ok',
+  '🙁': 'bad',  '😭': 'bad',  '☠️': 'bad',
 };
 
 const items = Array.from({ length: count }, (_, i) => ({

@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="404 — Code and Run" description="Pagina non trovata.">
+
+  <div class="car-hero">
+    <div class="car-hero__inner">
+      <div class="car-hero__eyebrow">DNF 🚫</div>
+      <h1 class="car-hero__title">404</h1>
+      <p class="car-hero__description">Hai preso una deviazione dal percorso: questa pagina non esiste (più).</p>
+    </div>
+  </div>
+
+  <main class="car-main car-main--page" id="main">
+    <div class="car-container">
+      <div class="car-404__actions">
+        <a href="/" class="car-404__cta">← Torna alla home</a>
+        <a href="/running/" class="car-404__cta">Vai a Running</a>
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .car-404__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 8px 0 48px;
+  }
+  .car-404__cta {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 100px;
+    background: var(--car-surface);
+    border: 1.5px solid var(--car-border);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .car-404__cta:hover {
+    border-color: var(--car-orange);
+    color: var(--car-orange);
+  }
+</style>

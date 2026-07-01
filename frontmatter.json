@@ -1,15 +1,19 @@
 {
   "$schema": "https://frontmatter.codes/frontmatter.schema.json",
   "frontMatter.framework.id": "astro",
+  "frontMatter.content.defaultFileType": "mdx",
+  "frontMatter.global.disabledNotifications": ["requiredFieldValidation"],
   "frontMatter.content.pageFolders": [
     {
       "title": "Posts",
-      "path": "[[workspace]]/src/content/posts"
+      "path": "[[workspace]]/src/content/posts",
+      "contentTypes": ["posts"]
     }
   ],
   "frontMatter.taxonomy.contentTypes": [
     {
       "name": "posts",
+      "fileType": "mdx",
       "pageBundle": false,
       "previewPath": "",
       "filePrefix": "{{date}}-",
@@ -17,8 +21,7 @@
         {
           "name": "title",
           "title": "Titolo",
-          "type": "string",
-          "single": true
+          "type": "string"
         },
         {
           "name": "date",
@@ -76,14 +79,28 @@
           "title": "Tipo allenamento per uscita",
           "type": "choice",
           "multiple": true,
-          "choices": ["🟢", "🟡", "🔴", "🏁"]
+          "choices": [
+            "🟢",
+            "🟡",
+            "🔴",
+            "🏁"
+          ]
         },
         {
           "name": "training_feelings",
           "title": "Sensazioni per uscita",
           "type": "choice",
           "multiple": true,
-          "choices": ["🙂", "😀", "😐", "🫤", "🙁", "😭", "☠️", "🏁"]
+          "choices": [
+            "🙂",
+            "😀",
+            "😐",
+            "🫤",
+            "🙁",
+            "😭",
+            "☠️",
+            "🏁"
+          ]
         },
         {
           "name": "places",
@@ -97,28 +114,5 @@
         }
       ]
     }
-  ],
-  "frontMatter.taxonomy.categories": [
-    "Running",
-    "Sport",
-    "Blog"
-  ],
-  "frontMatter.taxonomy.tags": [
-    "Running",
-    "Sport",
-    "variazioni",
-    "fondo-lento",
-    "progressivo",
-    "ripetute",
-    "lungo-maratona",
-    "gara",
-    "Apple",
-    "Books",
-    "Computers",
-    "Life",
-    "Linux",
-    "My Choices",
-    "Photos",
-    "Programming"
   ]
 }

@@ -11,16 +11,16 @@ const types    = training_types    ?? [];
 const feelings = training_feelings ?? [];
 const count    = Math.max(types.length, feelings.length);
 
-const feelingMap: Record<string, 'good' | 'ok' | 'bad'> = {
-  '🙂': 'good', '😀': 'good', '🏁': 'good',
-  '😐': 'ok',   '🫤': 'ok',
-  '🙁': 'bad',  '😭': 'bad',  '☠️': 'bad',
+const typeMap: Record<string, 'good' | 'ok' | 'bad'> = {
+  '🟢': 'good', '🏁': 'good',
+  '🟡': 'ok',
+  '🔴': 'bad',
 };
 
 const items = Array.from({ length: count }, (_, i) => ({
   type:    types[i]    ?? '',
   feeling: feelings[i] ?? '',
-  quality: feelingMap[feelings[i]] ?? 'ok',
+  quality: typeMap[types[i]] ?? 'ok',
 })).filter(item => item.type || item.feeling);
 ---
 {items.length > 0 && (

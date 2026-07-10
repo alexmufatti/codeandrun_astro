@@ -1,0 +1,15 @@
+{
+  "version": "0.2",
+  "language": "en,it",
+  "words": [
+  ],
+  "dictionaries": ["it_IT"],
+  "dictionaryDefinitions": [
+    {
+      "name": "it_IT",
+      "path": "./dictionaries/it_IT.txt",
+      "addWords": true
+    }
+  ],
+  "ignorePaths": ["node_modules/**"]
+}
